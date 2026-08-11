@@ -41,7 +41,6 @@ public class PlayerControl : MonoBehaviour
     public int foodCount = 0; 
     public int waterCount = 0; 
 
-    // YENİ EKLENEN: Ekranda sayıları göstereceğimiz yazı objeleri
     [Header("Envanter Arayüzü (UI)")]
     public TextMeshProUGUI foodText; 
     public TextMeshProUGUI waterText; 
@@ -78,7 +77,6 @@ public class PlayerControl : MonoBehaviour
             cameraTransform = Camera.main.transform;
         }
 
-        // Oyun başladığında ekrandaki yazıları 0 olarak güncelle
         UpdateInventoryUI(); 
     }
 
@@ -92,7 +90,6 @@ public class PlayerControl : MonoBehaviour
         HandleInteraction();
         HandleInventoryUsage();
 
-        // 1. Açlığı zamanla düşür
         if (currentHunger > 0)
         {
             currentHunger -= hungerDepletionRate * Time.deltaTime;
@@ -103,7 +100,6 @@ public class PlayerControl : MonoBehaviour
             currentHealth -= starvationDamage * Time.deltaTime;
         }
 
-        // 2. Susuzluğu zamanla düşür
         if (currentThirst > 0)
         {
             currentThirst -= thirstDepletionRate * Time.deltaTime;
@@ -114,14 +110,12 @@ public class PlayerControl : MonoBehaviour
             currentHealth -= starvationDamage * Time.deltaTime;
         }
 
-        // Can 0'ın altına düşmesin
         if (currentHealth <= 0)
         {
             currentHealth = 0;
             Die();
         }
 
-        // 3. UI Barlarını güncelle
         healthSlider.value = currentHealth;
         hungerSlider.value = currentHunger;
         thirstSlider.value = currentThirst;
@@ -140,13 +134,13 @@ public class PlayerControl : MonoBehaviour
                 {
                     foodCount++; 
                     Destroy(hit.collider.gameObject); 
-                    UpdateInventoryUI(); // UI'ı güncelle
+                    UpdateInventoryUI(); 
                 }
                 else if (hit.collider.CompareTag("Water"))
                 {
                     waterCount++; 
                     Destroy(hit.collider.gameObject); 
-                    UpdateInventoryUI(); // UI'ı güncelle
+                    UpdateInventoryUI();
                 }
             }
         }
@@ -160,7 +154,7 @@ public class PlayerControl : MonoBehaviour
             {
                 foodCount--; 
                 EatFood(20f); 
-                UpdateInventoryUI(); // UI'ı güncelle
+                UpdateInventoryUI(); 
             }
         }
 
@@ -170,12 +164,11 @@ public class PlayerControl : MonoBehaviour
             {
                 waterCount--; 
                 WaterDrink(20f); 
-                UpdateInventoryUI(); // UI'ı güncelle
+                UpdateInventoryUI(); 
             }
         }
     }
 
-    // YENİ EKLENEN: Ekrandaki yazıları güncelleyen fonksiyon
     private void UpdateInventoryUI()
     {
         if(foodText != null) foodText.text = "Yemek: " + foodCount;
