@@ -41,6 +41,11 @@ public class PlayerControl : MonoBehaviour
     public int foodCount = 0; 
     public int waterCount = 0; 
 
+    [Header("Durum Metinleri (TMP)")] // YENİ EKLENEN BÖLÜM
+    public TextMeshProUGUI healtText;
+    public TextMeshProUGUI hungerText;
+    public TextMeshProUGUI thirstText;
+
     [Header("Envanter Arayüzü (UI)")]
     public TextMeshProUGUI foodText; 
     public TextMeshProUGUI waterText; 
@@ -78,6 +83,7 @@ public class PlayerControl : MonoBehaviour
         }
 
         UpdateInventoryUI(); 
+        UpdateStatUI();
     }
 
     void Update()
@@ -119,6 +125,20 @@ public class PlayerControl : MonoBehaviour
         healthSlider.value = currentHealth;
         hungerSlider.value = currentHunger;
         thirstSlider.value = currentThirst;
+
+        UpdateStatUI();
+    }
+
+    private void UpdateStatUI()
+    {
+        if (healtText != null) 
+            healtText.text = currentHealth.ToString("0") + " / " + maxHealth;
+            
+        if (hungerText != null) 
+            hungerText.text = currentHunger.ToString("0") + " / " + maxHunger;
+            
+        if (thirstText != null) 
+            thirstText.text = currentThirst.ToString("0") + " / " + maxThirst;
     }
 
     private void HandleInteraction()
