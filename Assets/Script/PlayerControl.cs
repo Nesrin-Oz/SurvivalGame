@@ -41,7 +41,7 @@ public class PlayerControl : MonoBehaviour
     public int foodCount = 0; 
     public int waterCount = 0; 
 
-    [Header("Durum Metinleri (TMP)")] // YENİ EKLENEN BÖLÜM
+    [Header("Durum Metinleri (TMP)")]
     public TextMeshProUGUI healtText;
     public TextMeshProUGUI hungerText;
     public TextMeshProUGUI thirstText;
@@ -55,6 +55,27 @@ public class PlayerControl : MonoBehaviour
     public float interactRadius = 0.5f; 
     public KeyCode interactKey = KeyCode.E; 
     public LayerMask interactableLayer;
+
+    [Header("Efektler (Juice)")]
+    public Image damageScreen; 
+    public float flashSpeed = 5f; 
+    public float pulseSpeed = 2f;
+    public Color flashColor = new Color(1f, 0f, 0f, 0.5f); 
+    private bool isTakingDamage = false;
+
+    [Header("Sesler (Audio)")]
+    public AudioSource audioSource; 
+    
+    public AudioClip yemeSesi; 
+    [Range(0f, 1f)] public float yemeSesiSiddeti; 
+    public AudioClip icmeSesi;
+    [Range(0f, 1f)] public float icmeSesiSiddeti; 
+    public AudioClip hasarAlmaSesi; 
+    [Range(0f, 1f)] public float hasarSesiSiddeti = 0.5f; 
+    
+    [Header("Hasar Sesi Zamanlayıcısı")]
+    public float hasarSesiBeklemeSuresi = 1.5f; 
+    private float sonHasarSesiZamani = -10f; 
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -95,6 +116,7 @@ public class PlayerControl : MonoBehaviour
         
         HandleInteraction();
         HandleInventoryUsage();
+        HandleDamageScreen(); 
 
         if (currentHunger > 0)
         {
@@ -103,7 +125,7 @@ public class PlayerControl : MonoBehaviour
         else
         {
             currentHunger = 0; 
-            currentHealth -= starvationDamage * Time.deltaTime;
+            TakeDamage(starvationDamage * Time.deltaTime); 
         }
 
         if (currentThirst > 0)
@@ -113,7 +135,7 @@ public class PlayerControl : MonoBehaviour
         else
         {
             currentThirst = 0; 
-            currentHealth -= starvationDamage * Time.deltaTime;
+            TakeDamage(starvationDamage * Time.deltaTime); 
         }
 
         if (currentHealth <= 0)
@@ -127,6 +149,29 @@ public class PlayerControl : MonoBehaviour
         thirstSlider.value = currentThirst;
 
         UpdateStatUI();
+    }
+
+    private void HandleDamageScreen()
+    {
+        if (damageScreen != null)
+        {
+            if (currentHunger <= 0 || currentThirst <= 0 || currentHealth <= (maxHealth * 0.3f))
+            {
+                float pulseAlpha = Mathf.PingPong(Time.time * flashSpeed * pulseSpeed , flashColor.a);
+                damageScreen.color = new Color(flashColor.r, flashColor.g, flashColor.b, pulseAlpha);
+                
+                isTakingDamage = false;
+            }
+            else if (isTakingDamage)
+            {
+                damageScreen.color = flashColor;
+                isTakingDamage = false;
+            }
+            else
+            {
+                damageScreen.color = Color.Lerp(damageScreen.color, Color.clear, flashSpeed * Time.deltaTime);
+            }
+        }
     }
 
     private void UpdateStatUI()
@@ -198,18 +243,38 @@ public class PlayerControl : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
+        isTakingDamage = true; 
+        
+        if (audioSource != null && hasarAlmaSesi != null)
+        {
+            if (Time.time >= sonHasarSesiZamani + hasarSesiBeklemeSuresi)
+            {
+                audioSource.PlayOneShot(hasarAlmaSesi, hasarSesiSiddeti);
+                sonHasarSesiZamani = Time.time; 
+            }
+        }
     }
 
     public void EatFood(float nutritionValue)
     {
         currentHunger += nutritionValue;
         if (currentHunger > maxHunger) currentHunger = maxHunger;
+        
+        if (audioSource != null && yemeSesi != null)
+        {
+            audioSource.PlayOneShot(yemeSesi, yemeSesiSiddeti); 
+        }
     }
 
     public void WaterDrink(float nutritionValue)
     {
         currentThirst += nutritionValue;
         if (currentThirst > maxThirst) currentThirst = maxThirst;
+        
+        if (audioSource != null && icmeSesi != null)
+        {
+            audioSource.PlayOneShot(icmeSesi, icmeSesiSiddeti); 
+        }
     }
 
     void Die()
